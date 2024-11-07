@@ -13,7 +13,6 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cookieParser());
 app.use(
   express.urlencoded({
     extended: true,
@@ -47,19 +46,12 @@ app.post("/sign-in", async (req, res, next) => {
   try {
     const [rows] = await conn.query(sql, [email, psw]);
     if (rows.length > 0) {
-      // Set the user cookie
-      res.cookie("user", JSON.stringify(rows[0]), {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-      }); // Make sure 'secure' is false if you're not using HTTPS
-      console.log("Cookie Set:", rows[0]); // Log to verify cookie set
-      return res.json({ body: "Login success", status: 200 });
+      res.cookie("user", JSON.stringify(rows[0]), { httpOnly: true });
+      return res.json({ body: "Login success", status: 200 }); // Ensure only one response
     } else {
       return res.json({ body: "Login failed", status: 400 });
     }
   } catch (err) {
-    console.error(err);
     return res.json({ body: "Error during login", status: 500 });
   }
 });
@@ -94,18 +86,12 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
-  if (!req.cookies.user) {
-    console.error("User not authenticated. Please sign in.");
-    return res.redirect("/sign-in");
-  }
-
-  // Parse the cookie to verify
-  const user = JSON.parse(req.cookies.user);
+  console.log("Inbox route hit");
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
-    res.redirect("/inbox?page=1");
+    return res.redirect("/inbox?page=1");
   }
-
   return res.render("layout/layout.ejs", {
     title: "Inbox page",
     name: user.username,
@@ -114,15 +100,12 @@ app.get("/inbox", (req, res) => {
 });
 
 app.get("/outbox", (req, res) => {
-  if (!req.cookies.user) {
-    return res.redirect("/sign-in");
-  }
-  const user = req.cookies.user; // Access cookie directly
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
     return res.redirect("/outbox?page=1");
   }
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Outbox page",
     name: user.username,
     id: user.userId,
@@ -131,31 +114,63 @@ app.get("/outbox", (req, res) => {
 
 // Get emails (received or sent) with pagination
 app.get("/get/email/:option/:id", async (req, res) => {
-  const id = req.params.id;
-  let sql = "";
-  const conn = sqlPool();
+  console.log("m co log ko");
+  const { option, id } = req.params;
+  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+  const limit = 5; // Number of emails per page
+  const offset = (page - 1) * limit;
 
-  if (req.params.option == "received-email") {
-    sql = `select email.emailId, email.subject, email.body, email.sent_at, user.email as sender from email inner join user on
-    user.userId = email.senderId where email.recipientId = ? order by email.sent_at desc;`;
-  } else if (req.params.option == "sent-email") {
-    sql = `select email.emailId, email.subject, email.body, email.sent_at, user.email as recipient from email inner join user on
-    user.userId = email.recipientId where email.senderId = ? order by email.sent_at desc;`;
+  let sql = "";
+  let countSql = "";
+
+  if (option === "received-email") {
+    sql = `SELECT email.emailId, email.subject, email.body, email.sent_at, user.email as sender
+           FROM email
+           INNER JOIN user ON user.userId = email.senderId
+           WHERE email.recipientId = ?
+           ORDER BY email.sent_at DESC
+           LIMIT ? OFFSET ?`;
+
+    countSql = `SELECT COUNT(*) AS total FROM email WHERE recipientId = ?`;
+  } else if (option === "sent-email") {
+    sql = `SELECT email.emailId, email.subject, email.body, email.sent_at, user.email as recipient
+           FROM email
+           INNER JOIN user ON user.userId = email.recipientId
+           WHERE email.senderId = ?
+           ORDER BY email.sent_at DESC
+           LIMIT ? OFFSET ?`;
+
+    countSql = `SELECT COUNT(*) AS total FROM email WHERE senderId = ?`;
   } else {
+    return res
+      .status(400)
+      .json({ error: "Invalid option. Use 'received-email' or 'sent-email'" });
   }
 
+  const conn = sqlPool();
+  console.log("Before Fetch:", option, id); // Add this line
   try {
-    const [rows] = await conn.query(sql, [id]);
-    if (rows.length > 0) {
-      return res.json(rows);
-    } else {
-      return res.json([]);
-    }
-  } catch (err) {}
+    const [rows] = await conn.query(sql, [id, limit, offset]);
+    const [countResult] = await conn.query(countSql, [id]);
+    const totalEmails = countResult[0].total;
+    const totalPages = Math.ceil(totalEmails / limit);
+    console.log("Fetched Emails:", rows); // Log the fetched emails to see if any are returned
+    console.log("Total Pages:", totalPages); // Log the total pages
+
+    res.json({
+      emails: rows,
+      totalPages: totalPages,
+      currentPage: page,
+    });
+  } catch (err) {
+    console.error("Error fetching emails:", err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
+
 app.get("/email-detail/:id", async (req, res) => {
   const user = JSON.parse(decodeURIComponent(req.cookies.user));
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Detail",
     name: user.username,
     id: user.userId,
@@ -185,7 +200,7 @@ app.get("/get/email-detail/:id", async (req, res) => {
 
 app.get("/compose", async (req, res) => {
   const user = JSON.parse(decodeURIComponent(req.cookies.user));
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Compose",
     name: user.username,
     id: user.userId,

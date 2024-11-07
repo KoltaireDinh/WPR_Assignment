@@ -34,7 +34,7 @@
     const pagination = document.querySelector(".pagination");
 
     // Fetch emails based on userId
-    fetch(`/get/email/received-email/${cookie.userId}`)
+    fetch(`/get/email/received-email/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         let tableData = "";

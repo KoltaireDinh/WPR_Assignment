@@ -13,7 +13,6 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cookieParser());
 app.use(
   express.urlencoded({
     extended: true,
@@ -51,7 +50,6 @@ app.post("/sign-in", async (req, res, next) => {
       res.cookie("user", JSON.stringify(rows[0]), {
         httpOnly: true,
         secure: false,
-        path: "/",
       }); // Make sure 'secure' is false if you're not using HTTPS
       console.log("Cookie Set:", rows[0]); // Log to verify cookie set
       return res.json({ body: "Login success", status: 200 });
@@ -94,18 +92,15 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
+  console.log("User Cookie:", req.cookies.user); // Log the cookie to verify
   if (!req.cookies.user) {
-    console.error("User not authenticated. Please sign in.");
     return res.redirect("/sign-in");
   }
-
-  // Parse the cookie to verify
-  const user = JSON.parse(req.cookies.user);
+  const user = req.cookies.user; // Access cookie directly
   const params = req.query.page;
   if (params === undefined) {
-    res.redirect("/inbox?page=1");
+    return res.redirect("/inbox?page=1");
   }
-
   return res.render("layout/layout.ejs", {
     title: "Inbox page",
     name: user.username,

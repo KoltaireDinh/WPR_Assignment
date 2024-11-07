@@ -13,7 +13,6 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cookieParser());
 app.use(
   express.urlencoded({
     extended: true,
@@ -47,19 +46,12 @@ app.post("/sign-in", async (req, res, next) => {
   try {
     const [rows] = await conn.query(sql, [email, psw]);
     if (rows.length > 0) {
-      // Set the user cookie
-      res.cookie("user", JSON.stringify(rows[0]), {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-      }); // Make sure 'secure' is false if you're not using HTTPS
-      console.log("Cookie Set:", rows[0]); // Log to verify cookie set
-      return res.json({ body: "Login success", status: 200 });
+      res.cookie("user", JSON.stringify(rows[0]), { httpOnly: true });
+      return res.json({ body: "Login success", status: 200 }); // Ensure only one response
     } else {
       return res.json({ body: "Login failed", status: 400 });
     }
   } catch (err) {
-    console.error(err);
     return res.json({ body: "Error during login", status: 500 });
   }
 });
@@ -95,17 +87,13 @@ app.get("/logout", (req, res) => {
 });
 app.get("/inbox", (req, res) => {
   if (!req.cookies.user) {
-    console.error("User not authenticated. Please sign in.");
     return res.redirect("/sign-in");
   }
-
-  // Parse the cookie to verify
-  const user = JSON.parse(req.cookies.user);
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
-    res.redirect("/inbox?page=1");
+    return res.redirect("/inbox?page=1");
   }
-
   return res.render("layout/layout.ejs", {
     title: "Inbox page",
     name: user.username,
@@ -114,10 +102,7 @@ app.get("/inbox", (req, res) => {
 });
 
 app.get("/outbox", (req, res) => {
-  if (!req.cookies.user) {
-    return res.redirect("/sign-in");
-  }
-  const user = req.cookies.user; // Access cookie directly
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
     return res.redirect("/outbox?page=1");

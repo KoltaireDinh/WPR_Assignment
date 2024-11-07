@@ -94,6 +94,7 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
+  console.log("Rendering /inbox page");
   if (!req.cookies.user) {
     console.error("User not authenticated. Please sign in.");
     return res.redirect("/sign-in");

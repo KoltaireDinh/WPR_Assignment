@@ -94,6 +94,8 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
+  console.log("Rendering /inbox page");
+  console.log("User Cookie Raw:", req.cookies.user);
   if (!req.cookies.user) {
     console.error("User not authenticated. Please sign in.");
     return res.redirect("/sign-in");
@@ -101,9 +103,10 @@ app.get("/inbox", (req, res) => {
 
   // Parse the cookie to verify
   const user = JSON.parse(req.cookies.user);
+  console.log("Parsed User Cookie:", user);
   const params = req.query.page;
   if (params === undefined) {
-    res.redirect("/inbox?page=1");
+    return res.redirect("/inbox?page=1");
   }
 
   return res.render("layout/layout.ejs", {
@@ -114,6 +117,7 @@ app.get("/inbox", (req, res) => {
 });
 
 app.get("/outbox", (req, res) => {
+  console.log(req.cookies.user);
   if (!req.cookies.user) {
     return res.redirect("/sign-in");
   }

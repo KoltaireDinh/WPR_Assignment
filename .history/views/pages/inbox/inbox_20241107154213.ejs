@@ -24,7 +24,7 @@
     ? JSON.parse(decodeURIComponent(cookieString.split("=")[1]))
     : null;
 
-  if (!cookie || !cookie.userId) {
+  if (!userId) {
     console.error("User not authenticated. Please sign in.");
     document.querySelector("tbody").innerHTML = `
         <tr><td colspan="3" style="text-align: center">User not authenticated. Please sign in.</td></tr>
@@ -34,7 +34,7 @@
     const pagination = document.querySelector(".pagination");
 
     // Fetch emails based on userId
-    fetch(`/get/email/received-email/${cookie.userId}`)
+    fetch(`/get/email/received-email/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         let tableData = "";

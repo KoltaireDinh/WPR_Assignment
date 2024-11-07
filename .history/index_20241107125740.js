@@ -13,7 +13,6 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cookieParser());
 app.use(
   express.urlencoded({
     extended: true,
@@ -41,27 +40,20 @@ app.get("/sign-in", function (req, res, next) {
 
 app.post("/sign-in", async (req, res, next) => {
   const { email, psw } = req.body;
+
   const sql = "SELECT * FROM `user` WHERE `email` = ? AND `password` = ?";
   const conn = sqlPool();
 
   try {
     const [rows] = await conn.query(sql, [email, psw]);
     if (rows.length > 0) {
-      // Set the user cookie
-      res.cookie("user", JSON.stringify(rows[0]), {
-        httpOnly: true,
-        secure: false,
-        path: "/",
-      }); // Make sure 'secure' is false if you're not using HTTPS
-      console.log("Cookie Set:", rows[0]); // Log to verify cookie set
-      return res.json({ body: "Login success", status: 200 });
+      res.cookie("user", JSON.stringify(rows[0]), { encode: cookieEncode });
+
+      res.json({ body: "Login success", status: 200 });
     } else {
-      return res.json({ body: "Login failed", status: 400 });
+      res.json({ body: "Login failed", status: 400 });
     }
-  } catch (err) {
-    console.error(err);
-    return res.json({ body: "Error during login", status: 500 });
-  }
+  } catch (err) {}
 });
 
 app.get("/sign-up", function (req, res, next) {
@@ -86,7 +78,7 @@ app.post("/sign-up", async (req, res, next) => {
       res.json({ isSuccess: false, errorMessage: data.sqlMessage });
     });
 });
-app.get("/logout", (req, res) => {
+app.get("/sign-out", (req, res) => {
   // Clear the user cookie
   res.clearCookie("user");
 
@@ -94,18 +86,11 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
-  if (!req.cookies.user) {
-    console.error("User not authenticated. Please sign in.");
-    return res.redirect("/sign-in");
-  }
-
-  // Parse the cookie to verify
-  const user = JSON.parse(req.cookies.user);
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
     res.redirect("/inbox?page=1");
   }
-
   return res.render("layout/layout.ejs", {
     title: "Inbox page",
     name: user.username,
@@ -114,22 +99,18 @@ app.get("/inbox", (req, res) => {
 });
 
 app.get("/outbox", (req, res) => {
-  if (!req.cookies.user) {
-    return res.redirect("/sign-in");
-  }
-  const user = req.cookies.user; // Access cookie directly
+  const user = JSON.parse(decodeURIComponent(req.cookies.user));
   const params = req.query.page;
   if (params === undefined) {
-    return res.redirect("/outbox?page=1");
+    res.redirect("/outbox?page=1");
   }
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Outbox page",
     name: user.username,
     id: user.userId,
   });
 });
 
-// Get emails (received or sent) with pagination
 app.get("/get/email/:option/:id", async (req, res) => {
   const id = req.params.id;
   let sql = "";
@@ -153,39 +134,36 @@ app.get("/get/email/:option/:id", async (req, res) => {
     }
   } catch (err) {}
 });
+
 app.get("/email-detail/:id", async (req, res) => {
   const user = JSON.parse(decodeURIComponent(req.cookies.user));
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Detail",
     name: user.username,
     id: user.userId,
   });
 });
 
-// Fetch email detail by ID
 app.get("/get/email-detail/:id", async (req, res) => {
-  const emailId = req.params.id;
-  const sql = `SELECT email.subject, email.body, email.sent_at, email.attachment, user.email as sender
-               FROM email
-               INNER JOIN user ON user.userId = email.senderId
-               WHERE email.emailId = ?`;
-
   const conn = sqlPool();
+  let sql = "";
+  sql = `select sender.email as sender, recipient.email as recipient, email.subject, email.body, email.sent_at from email
+  inner join user sender on email.senderId = sender.userId
+  inner join user recipient on email.recipientId = recipient.userId
+  where emailId = ?;`;
+
   try {
-    const [rows] = await conn.query(sql, [emailId]);
+    const [rows] = await conn.query(sql, [req.params.id]);
     if (rows.length > 0) {
-      res.json(rows[0]);
+      return res.json(rows);
     } else {
-      res.status(404).json({ error: "Email not found" });
     }
-  } catch (err) {
-    res.status(500).json({ error: "Database error" });
-  }
+  } catch (err) {}
 });
 
 app.get("/compose", async (req, res) => {
   const user = JSON.parse(decodeURIComponent(req.cookies.user));
-  return res.render("layout/layout.ejs", {
+  res.render("layout/layout.ejs", {
     title: "Compose",
     name: user.username,
     id: user.userId,
@@ -200,7 +178,7 @@ app.post("/compose", async (req, res) => {
   const conn = sqlPool();
   let sql = `INSERT INTO email (senderId, recipientId, subject, body, attachment)
   VALUES (?, ?, ?, ?, ?)`;
-  console.log("Before Insert:", emailData); // Add this line
+
   await conn
     .query(sql, [
       user.userId,
@@ -209,14 +187,8 @@ app.post("/compose", async (req, res) => {
       emailData.body,
       emailData.attachment,
     ])
-    .then((rs) => {
-      console.log("Email Inserted:", rs); // Add this line
-      status = "success";
-    })
-    .catch((rs) => {
-      console.log("Insert Failed:", rs); // Add this line
-      status = "failed";
-    });
+    .then((rs) => (status = "success"))
+    .catch((rs) => (status = "failed"));
 
   return res.render("layout/layout.ejs", {
     title: "Compose",

@@ -24,6 +24,7 @@
   fetch(`/get/email/sent-email/${cookie.userId}`)
     .then((res) => res.json())
     .then((data) => {
+      console.log("Fetched emails:", data);
       let tableData = "";
       if (data.length == 0) {
         tableData = `<tr><td class="sender-recipient"></td><td><div class = "body" style = "text-align: center">No email was found</div></td><td></td></tr>`;

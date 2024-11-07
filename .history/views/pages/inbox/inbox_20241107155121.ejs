@@ -34,12 +34,13 @@
     const pagination = document.querySelector(".pagination");
 
     // Fetch emails based on userId
-    fetch(`/get/email/received-email/${cookie.userId}`)
+    fetch(`/get/email/received-email/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         let tableData = "";
 
         if (data.length === 0) {
+          console.log("User Cookie Raw:", req.cookies.user);
           tableData = `<tr><td colspan="3" style="text-align: center">No emails found</td></tr>`;
           tableBody.innerHTML = tableData;
         } else {

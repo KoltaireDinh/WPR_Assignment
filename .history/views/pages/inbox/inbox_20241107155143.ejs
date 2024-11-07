@@ -40,6 +40,7 @@
         let tableData = "";
 
         if (data.length === 0) {
+          console.log("User Cookie Raw:", req.cookies.user);
           tableData = `<tr><td colspan="3" style="text-align: center">No emails found</td></tr>`;
           tableBody.innerHTML = tableData;
         } else {

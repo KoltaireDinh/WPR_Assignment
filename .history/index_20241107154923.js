@@ -51,7 +51,7 @@ app.post("/sign-in", async (req, res, next) => {
       res.cookie("user", JSON.stringify(rows[0]), {
         httpOnly: true,
         secure: false,
-        path: "/",
+        path,
       }); // Make sure 'secure' is false if you're not using HTTPS
       console.log("Cookie Set:", rows[0]); // Log to verify cookie set
       return res.json({ body: "Login success", status: 200 });
@@ -94,6 +94,7 @@ app.get("/logout", (req, res) => {
   res.redirect("/sign-in");
 });
 app.get("/inbox", (req, res) => {
+  console.log("User Cookie Raw:", req.cookies.user);
   if (!req.cookies.user) {
     console.error("User not authenticated. Please sign in.");
     return res.redirect("/sign-in");
@@ -101,9 +102,10 @@ app.get("/inbox", (req, res) => {
 
   // Parse the cookie to verify
   const user = JSON.parse(req.cookies.user);
+  console.log("Parsed User Cookie:", user);
   const params = req.query.page;
   if (params === undefined) {
-    res.redirect("/inbox?page=1");
+    return res.redirect("/inbox?page=1");
   }
 
   return res.render("layout/layout.ejs", {

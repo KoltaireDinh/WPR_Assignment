@@ -1,9 +1,9 @@
-<div class="outbox inbox">
+<div class="inbox">
   <div class="wrapper">
     <table>
       <thead>
         <tr>
-          <th>Recipient</th>
+          <th class="sender-recipient">Sender</th>
           <th>Content</th>
           <th>Time</th>
         </tr>
@@ -16,15 +16,18 @@
 </div>
 
 <script>
+  //cannot get ID
   const cookie = JSON.parse(document.cookie.replace("user=", ""));
   const tableBody = document.querySelector("tbody");
-
   const pagination = document.querySelector(".pagination");
 
-  fetch(`/get/email/sent-email/${cookie.userId}`)
+  `<tr><td class="sender-recipient"></td><td><div class = "body" style = "text-align: center">No email was found</div></td><td></td></tr>`;
+
+  fetch(`/get/email/received-email/${cookie.userId}`)
     .then((res) => res.json())
     .then((data) => {
       let tableData = "";
+
       if (data.length == 0) {
         tableData = `<tr><td class="sender-recipient"></td><td><div class = "body" style = "text-align: center">No email was found</div></td><td></td></tr>`;
         tableBody.innerHTML = tableData;
@@ -40,7 +43,7 @@
         });
 
         for (let i = 1; i <= totalPage; i++) {
-          paginationPage += `<a href="/outbox?page=${i}" class="${
+          paginationPage += `<a href="/inbox?page=${i}" class="${
             i == currentPage ? "active" : ""
           }">${i}</a>`;
         }
@@ -50,12 +53,9 @@
         data.forEach((row, index) => {
           if ((currentPage - 1) * 5 <= index && index < currentPage * 5) {
             const time = new Date(row.sent_at);
-
             tableData += `
                             <tr>
-                                <td class="sender-recipient">${
-                                  row.recipient
-                                }</td>
+                                <td class="sender-recipient">${row.sender}</td>
                                 <td>
                                     <div class = "subject">
                                         <a style = "font-weight: bold" href="/email-detail/${
@@ -80,5 +80,6 @@
 
         tableBody.innerHTML = tableData;
       }
-    });
+    })
+    .catch((err) => console.log(err));
 </script>
