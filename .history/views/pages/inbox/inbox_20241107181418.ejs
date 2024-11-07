@@ -1,0 +1,101 @@
+<div class="inbox">
+  <div class="wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="sender-recipient">Sender</th>
+          <th>Content</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="pagination"></div>
+  </div>
+</div>
+
+// This script can be used in both inbox.ejs and outbox.ejs
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  const userCookie = getCookie("user");
+  if (!userCookie) {
+    window.location.href = "/sign-in";
+  } else {
+    try {
+      const user = JSON.parse(decodeURIComponent(userCookie));
+      const tableBody = document.querySelector("tbody");
+      const pagination = document.querySelector(".pagination");
+      tableBody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+
+      const isInbox = window.location.pathname.includes("inbox");
+      const emailType = isInbox ? "received-email" : "sent-email";
+
+      fetch(`/get/email/${emailType}/${user.userId}${window.location.search}`, {
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          let tableData = "";
+
+          if (data.emails.length === 0) {
+            tableData = `<tr><td colspan="3" style="text-align: center">No emails found</td></tr>`;
+          } else {
+            data.emails.forEach((row) => {
+              const time = new Date(row.sent_at);
+              tableData += `
+                <tr>
+                  <td class="sender-recipient">${
+                    isInbox ? row.sender : row.recipient
+                  }</td>
+                  <td>
+                    <div class="subject">
+                      <a style="font-weight: bold" href="/email-detail/${
+                        row.emailId
+                      }">
+                        ${row.subject || "No subject"}
+                      </a>
+                    </div>
+                    <div class="body">${row.body}</div>
+                  </td>
+                  <td>${time.toLocaleString("en-us", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}</td>
+                </tr>
+              `;
+            });
+          }
+
+          tableBody.innerHTML = tableData;
+
+          // Render pagination
+          let paginationHtml = "";
+          for (let i = 1; i <= data.pagination.totalPages; i++) {
+            paginationHtml += `<a href="?page=${i}" class="${
+              i === data.pagination.currentPage ? "active" : ""
+            }">${i}</a>`;
+          }
+          pagination.innerHTML = paginationHtml;
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          tableBody.innerHTML = `<tr><td colspan="3">Error loading emails: ${error.message}</td></tr>`;
+        });
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      window.location.href = "/sign-in";
+    }
+  }
+</script>

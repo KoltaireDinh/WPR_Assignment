@@ -1,0 +1,96 @@
+<div class="inbox">
+  <div class="wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="sender-recipient">Sender</th>
+          <th>Content</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="pagination"></div>
+  </div>
+</div>
+
+<script>
+  // Safely get and parse the user cookie
+  const cookieString = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("user="));
+  const cookie = cookieString
+    ? JSON.parse(decodeURIComponent(cookieString.split("=")[1]))
+    : null;
+
+  if (!cookie || !cookie.userId) {
+    console.error("User not authenticated. Please sign in.");
+    document.querySelector("tbody").innerHTML = `
+        <tr><td colspan="3" style="text-align: center">User not authenticated. Please sign in.</td></tr>
+      `;
+  } else {
+    const tableBody = document.querySelector("tbody");
+    const pagination = document.querySelector(".pagination");
+
+    // Fetch emails based on userId
+    fetch(`/get/email/received-email/${userId.userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        let tableData = "";
+
+        if (data.length === 0) {
+          tableData = `<tr><td colspan="3" style="text-align: center">No emails found</td></tr>`;
+          tableBody.innerHTML = tableData;
+        } else {
+          const totalPage = Math.ceil(data.length / 5);
+          const queryParams = new URLSearchParams(window.location.search);
+          const currentPage = parseInt(queryParams.get("page")) || 1;
+
+          // Render pagination
+          let paginationPage = "";
+          for (let i = 1; i <= totalPage; i++) {
+            paginationPage += `<a href="/inbox?page=${i}" class="${
+              i === currentPage ? "active" : ""
+            }">${i}</a>`;
+          }
+          pagination.innerHTML = paginationPage;
+
+          // Render email rows for the current page
+          data.forEach((row, index) => {
+            if ((currentPage - 1) * 5 <= index && index < currentPage * 5) {
+              const time = new Date(row.sent_at);
+              tableData += `
+                  <tr>
+                    <td class="sender-recipient">${row.sender}</td>
+                    <td>
+                      <div class="subject">
+                        <a style="font-weight: bold" href="/email-detail/${
+                          row.emailId
+                        }">
+                          ${row.subject || "No subject"}
+                        </a>
+                      </div>
+                      <div class="body">${row.body}</div>
+                    </td>
+                    <td>${time.toLocaleString("en-us", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}</td>
+                  </tr>
+                `;
+            }
+          });
+
+          tableBody.innerHTML = tableData;
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching emails:", err);
+        tableBody.innerHTML = `
+            <tr><td colspan="3" style="text-align: center">Error loading emails. Please try again later.</td></tr>
+          `;
+      });
+  }
+</script>

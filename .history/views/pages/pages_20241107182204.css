@@ -1,0 +1,135 @@
+table {
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+    margin: auto;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table th, table td {
+    padding: 8px 12px;
+    background-color: white;
+}
+
+table th {
+    padding: 24px;
+}
+
+table th:first-child {
+    width: 100px;
+}
+
+table th:nth-child(2) {
+    width: 700px;
+}
+
+table th:last-child {
+    width: 200px;
+}
+
+table td:first-child {
+    width: 200px;
+    text-align: center;
+}
+
+table td.sender-recipient {
+    font-weight: 500;
+}
+
+table td:nth-child(2) {
+    width: 700px;
+    padding: 12px 18px;
+}
+
+table td:nth-child(2) .body {
+    width: 700px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 1.2em;
+    white-space: nowrap;
+}
+
+table td:last-child {
+    width: 200px;
+    text-align: center;
+}
+
+table a {
+    color: black;
+}
+
+
+/*Compose*/
+.compose .heading {
+    margin-bottom: 30px;
+}
+
+.compose form {
+    width: 50%;
+    margin: auto;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+    padding: 48px 24px;
+    background-color: white;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.compose form div {
+    margin-bottom: 12px;
+}
+
+.compose .subject, .compose .file {
+    border-top: 1px solid #eceff1;
+    border-bottom: 1px solid #eceff1;
+    padding: 4px 0;
+}
+
+.compose input {
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    width: 87%;
+}
+
+.compose input[type='file'] {
+    width: 82%;
+}
+
+.compose textarea {
+    width: 100%;
+}
+
+.compose .button {
+    display: flex;
+    justify-content: end;
+}
+
+.compose .button button {
+    padding: 2px 4px;
+    cursor: pointer;
+}
+
+
+
+/*Inbox page*/
+
+.inbox .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.inbox .pagination a {
+    text-decoration: none;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    color: black;
+}
+
+.inbox .pagination a.active {
+    color: #dd4a33;
+    border: 1px solid #dd4a33;
+    border-radius: 999px;
+}
