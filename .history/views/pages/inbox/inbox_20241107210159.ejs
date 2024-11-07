@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- Link to your CSS file -->
+  </head>
+  <body>
+    <h1>Inbox</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Subject</th>
+          <th>Sender</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="email-list">
+        <% emails.forEach(email => { %>
+        <tr>
+          <td>
+            <input
+              type="checkbox"
+              class="email-checkbox"
+              value="<%= email.emailId %>"
+            />
+          </td>
+          <td>
+            <a href="/email-detail/<%= email.emailId %>"
+              ><%= email.subject || '(no subject)' %></a
+            >
+          </td>
+          <td><%= email.senderName %></td>
+          <td><%= new Date(email.sent_at).toLocaleString() %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <button id="delete-selected">Delete Selected</button>
+
+    <script>
+      document
+        .getElementById("delete-selected")
+        .addEventListener("click", async () => {
+          const selectedEmails = Array.from(
+            document.querySelectorAll(".email-checkbox:checked")
+          ).map((checkbox) => checkbox.value);
+
+          if (selectedEmails.length === 0) {
+            alert("No emails selected for deletion.");
+            return;
+          }
+
+          try {
+            const response = await fetch("/delete-emails", {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ emailIds: selectedEmails }),
+            });
+
+            if (response.ok) {
+              // Remove deleted emails from the UI
+              selectedEmails.forEach((emailId) => {
+                const row = document
+                  .querySelector(`input[value='${emailId}']`)
+                  .closest("tr");
+                row.remove();
+              });
+              alert("Selected emails deleted successfully.");
+            } else {
+              const errorData = await response.json();
+              alert(`Error: ${errorData.error}`);
+            }
+          } catch (error) {
+            console.error("Error deleting emails:", error);
+            alert("An error occurred while deleting emails.");
+          }
+        });
+    </script>
+  </body>
+</html>
