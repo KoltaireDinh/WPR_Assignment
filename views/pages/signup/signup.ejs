@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/public/styles/global.css" rel="stylesheet" type="text/css">
+    <link href="/views/pages/signup/signup.css" rel="stylesheet" type="text/css">
+    <title><%= title %></title>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="heading-section logo">
+            <img src="https://1000logos.net/wp-content/uploads/2021/05/Gmail-logo.png" alt="" width="100px">
+            <span>MyMail</span>
+        </div>
+
+        <form class="form flex-col">
+            <div class="flex-col">    
+                <label for="" >Fullname  <span class="error fname float-right">**Please enter fullname**</span></label>
+                <input type="text" name="fname" id="fname">
+            </div>
+
+            <div class="flex-col">
+                <label for="">Email <span class="error email float-right">**Please enter email**</span><span class="error duplicated email float-right">**Email duplicated**</span></label>
+                <input type="text" name="email" id="email">
+            </div>
+
+            <div class="flex-col">
+                <label for="">Password <span class="error psw float-right">**Password must be at least 6 characters long**</span> </label>
+                <input type="password" name="psw" id="psw">
+            </div>
+
+            <div class="flex-col">
+                <label for="">Re-enter password <span class="error re-psw float-right">**Must be similar with your password**</span></label>
+                <input type="password" name="re-psw" id="re-psw">
+            </div>
+
+            <div class="footer-section">
+                <div class="flex justify-space-between mb-16"> 
+                    <span><a href="/">Sign in</a></span>
+                    <span>Forgot password</span>
+                </div>
+                <button type="submit" class="btn" id="register">Sign up</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+<script lang="js" defer>
+    const fname = document.getElementById("fname");
+    const email = document.getElementById("email");
+    const psw = document.getElementById("psw");
+    const rePsw = document.getElementById("re-psw");
+    const submitBtn = document.getElementById("register")
+
+    const validateFName = () => {
+        if(fname.classList.contains("error")) {
+            fname.classList.remove("error")
+            document.querySelector(".fname.error").style.display = "none"
+        }
+        if(fname.value.trim().length == 0) {
+            fname.classList.add("error")
+            document.querySelector(".fname.error").style.display = "inline-block"
+            return false;
+        }
+
+        return true
+    }
+
+    const validateEmail = () => {
+        if(email.classList.contains("error")) {
+            email.classList.remove("error")
+            document.querySelector(".email.error").style.display = "none"
+        }
+
+        if(email.value.trim().length == 0) {
+            email.classList.add("error")
+            document.querySelector(".email.error").style.display = "inline-block"
+            return false;
+        }
+
+        fetch(`/get/${email.value.trim()}`)
+            .then(res=>res.json())
+            .then(data => {
+                if(data.length == 1) {
+                    document.querySelector(".email.error.duplicated").style.display = "inline-block"
+                    return false
+                }
+            })
+
+        return true;
+    }
+
+    const validatePsw = () => {
+        if(psw.classList.contains("error")) {
+            psw.classList.remove("error")
+            document.querySelector(".psw.error").style.display = "none"
+        }
+
+        if(psw.value.trim().length < 6 ) {
+            psw.classList.add("error")
+            document.querySelector(".psw.error").style.display = "inline-block"
+            return false;
+        }
+
+        return true;
+    }
+
+    const validateRePsw = () => {
+        if(rePsw.classList.contains("error")) {
+            rePsw.classList.remove("error")
+            document.querySelector(".re-psw.error").style.display = "none"
+        }
+
+        if(rePsw.value.trim() !== psw.value.trim() ) {
+            rePsw.classList.add("error")
+            document.querySelector(".re-psw.error").style.display = "inline-block"
+            return false;
+        }
+
+        return true;
+    }
+
+
+    submitBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        if(validateFName() && validateEmail() && validatePsw() && validateRePsw()) {
+            const data = {"fullname": fname.value, "email": email.value, "psw": psw.value}
+            try {
+                await fetch("/sign-up", {
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': "application/json"
+                    },
+                    body: JSON.stringify(data),
+                })
+
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.isSuccess) {
+                            alert("Sign up successfully")
+                            window.location.replace("/sign-in")
+                        } else {
+                            alert("Login failed! Your email might be taken")
+                        }
+                    })
+
+                
+
+            } catch (err) {
+                console.log(err)
+            }
+        }
+    })
+</script>
+</html>

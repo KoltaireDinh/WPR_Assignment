@@ -1,0 +1,71 @@
+<div class="notification">
+    <div class="notification-wrapper">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p><%= message %></p>
+    </div>
+</div>
+
+<script>
+    const message = document.querySelector(".notification-wrapper")
+    setTimeout(() => {
+        message.style.animation = "moveOut 1s ease forwards"
+    }, 3000);
+
+    setTimeout(() => {
+        message.remove()
+    }, 6000)
+</script>
+
+<style>
+    .notification-wrapper{
+        background-color: rgb(255, 0, 0);
+        position: absolute;
+        top: 0px;
+        right: 0;
+        transition: 0.25s;
+        z-index: 100;
+
+        margin: 16px 20px;
+        padding: 24px 32px 24px 32px;
+        border-radius: 5px;
+        display: flex;
+        color: white;
+        font-size: 18px;
+        font-weight: 700;
+        animation: moveIn 1s ease forwards;
+    }
+
+    .notification-wrapper i {
+        padding-right: 16px;
+        margin-top: 3px;
+    }
+
+    @keyframes moveIn {
+    0% {
+		transform: translateX(100%);
+	}
+	40% {
+		transform: translateX(-10%);
+	}
+	80% {
+		transform: translateX(0%);
+	}
+	100% {
+		transform: translateX(-10px);
+	}
+}
+@keyframes moveOut {
+	0% {
+		transform: translateX(-10px);
+	}
+	40% {
+		transform: translateX(0%);
+	}
+	80% {
+		transform: translateX(-10%);
+	}
+	100% {
+		transform: translateX(120%);
+	}
+}
+</style>

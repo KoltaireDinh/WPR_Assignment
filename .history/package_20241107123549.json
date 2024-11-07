@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dbsetup": "nodemon dbsetup.js",
-    "start": "nodemon index.js"
+    "dbsetup": "nodemon dbsetup.js"
   },
   "author": "",
   "license": "ISC",

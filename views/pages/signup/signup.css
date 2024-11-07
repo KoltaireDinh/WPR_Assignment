@@ -1,0 +1,11 @@
+.wrapper {
+    position: absolute;
+    border: 2px solid black;
+    padding: 16px 32px;
+    border-radius: 16px;
+    width: 500px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+

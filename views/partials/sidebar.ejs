@@ -1,0 +1,29 @@
+<nav>
+    <div class="wrapper">
+        <div class="div"></div>
+        <div class="compose page">
+            <a href="/compose"> 
+                <i class="fas fa-pen"></i>
+                Compose
+            </a>
+        </div>
+
+        <div class="inbox page">
+            <a href="/inbox">
+                <i class="fas fa-paper-plane"></i>
+                Inbox
+            </a>
+        </div>
+
+        <div class="outbox page">
+            <a href="/outbox">
+                <i class="fas fa-mail-bulk"></i>
+                Outbox
+            </a>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.querySelector(`.${(window.location.pathname).replace("/","")}`).classList.add("active")
+</script>

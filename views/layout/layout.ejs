@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../partials/partials.css">
+    <link rel="stylesheet" href="../pages/pages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title><%= title %></title>
+</head>
+<body>
+    <div class="wrapper flex">
+        <div class="">
+            <%- include ('../partials/sidebar', {name: name}) %>
+        </div>
+
+        <div class="w-full">
+            <%- include ('../partials/header') %>
+
+            <div class="content">
+                <% if (title == "Inbox page") { %>
+                    <%- include ('../pages/inbox/inbox', {id: id}) %>
+                                        
+                <% } else if (title == "Outbox page") { %>
+                    <%- include ('../pages/outbox/outbox', {id: id}) %>
+
+                <% } else if (title == "Detail") { %>
+                    <%- include ('../pages/detail/detail')%>
+                
+                <% } else if (title == "Compose") { %>
+                    <%- include ('../pages/compose/compose', {status: status})%>
+
+                <% } else { %>
+                    <h1>Layout page</h1>     
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

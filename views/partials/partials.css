@@ -1,0 +1,93 @@
+@import url("../../public/styles/global.css");
+
+:root {
+    --header-height: 70px;
+    --sidebar-width: 200px;
+}
+/*Header*/
+header .wrapper{
+    height: var(--header-height);
+    position: fixed;
+    width: 100%;
+    background-color: #3d4045;
+    box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px;
+    z-index: 10;
+}
+
+header .wrapper > div {
+    height: 100%;
+}
+
+header .logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+header .action {
+    display: flex;
+    gap: 1rem;
+    color: white;
+    justify-content: space-between;
+    margin-right: 30px;
+}
+
+header .logout {
+    cursor: pointer;
+}
+
+/*Sidebar*/
+nav .wrapper {
+    height: 100vh;
+    position: fixed;
+    margin-top: var(--header-height);
+    width: var(--sidebar-width);
+    background-color: white;
+    box-shadow: rgba(136, 165, 191, 0.48) 6px 2px 16px 0px, rgba(255, 255, 255, 0.8) -6px -2px 16px 0px;
+    z-index: 10;
+    padding-left: 15px;
+}
+
+nav .logo  i {
+    font-size: 40px;
+    margin-top: 20px;
+}
+
+nav .logo {
+    margin-bottom: 30px;
+}
+
+nav .page {
+    margin-top: 20px;
+    padding: 12px 12px;
+}
+
+nav .page a i {
+    margin-right: 5px;
+    color: #b3b3b3;
+}
+
+nav .page a {
+    text-decoration: none;
+    color: #b3b3b3;
+}
+
+
+nav .page.active a i {
+    margin-right: 5px;
+    color: #dd4a33;
+}
+
+nav .page.active a {
+    text-decoration: none;
+    color: #dd4a33;
+    font-weight: 600;
+}
+/*Content*/
+.content {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    padding: 30px 24px;
+    background-color: #e1e6f1;
+    min-height: 100vh;
+}
